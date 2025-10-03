@@ -27,8 +27,6 @@ export class RegisterResponseDto {
   email: string;
   name: string;
   avatarUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export class LoginResponseDto {

@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { RegisterResponseDto, RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RegisterResponseDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -78,7 +78,8 @@ export class AuthService {
 
   private excludePassword(user: any): RegisterResponseDto {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { passwordHash, ...userWithoutPassword } = user;
-    return userWithoutPassword as RegisterResponseDto;
+    const { passwordHash, createdAt, updatedAt, ...userWithoutSensitiveData } =
+      user;
+    return userWithoutSensitiveData as RegisterResponseDto;
   }
 }
