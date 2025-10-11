@@ -42,7 +42,7 @@ export class AuthService {
 
     return {
       user: this.excludePassword(user),
-      accessToken, // ← Добавляем токен в ответ
+      accessToken,
     };
   }
 

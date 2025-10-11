@@ -15,5 +15,37 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  posts Post[]
+
   @@map("users")
+}
+
+model Post {
+  id           Int      @id @default(autoincrement())
+  text         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId       Int
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files        PostFile[]
+
+  @@map("posts")
+}
+
+model PostFile {
+  id           Int      @id @default(autoincrement())
+  url          String
+  type         FileType
+
+  postId       Int
+  post         Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@map("post_files")
+}
+
+enum FileType {
+  VIDEO
+  IMAGE
+  OTHER
 }
