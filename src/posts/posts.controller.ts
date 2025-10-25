@@ -1,18 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
-  Get,
   Post,
   Body,
   Request,
-  ParseIntPipe,
-  Param,
-  Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -20,17 +18,22 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post('')
-  create(@Body() dto: CreatePostDto, @Request() req) {
-    return this.postsService.create(req.user.id, dto);
-  }
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @Body() CreatePostDto: CreatePostDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req, // Получаем пользователя из JWT
+  ) {
+    // userId теперь берется из JWT токена
+    const userId = req.user.id;
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) postId: number, @Request() req) {
-    return this.postsService.remove(postId, req.user.id);
-  }
-
-  @Get('')
-  findAll() {
-    return this.postsService.findAll();
+    const result = await this.postsService.create(
+      {
+        ...CreatePostDto,
+        userId,
+      },
+      file,
+    );
+    return result;
   }
 }

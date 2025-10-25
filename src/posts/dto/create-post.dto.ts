@@ -1,11 +1,4 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsEnum,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class PostFileDto {
   @IsString()
@@ -18,9 +11,4 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   text?: string;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PostFileDto)
-  files: PostFileDto[];
 }

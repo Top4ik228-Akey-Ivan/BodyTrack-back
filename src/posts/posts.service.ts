@@ -1,108 +1,63 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 import { PrismaService } from 'src/prisma.service';
-import { PostResponseDto } from './dto/post-response.dto';
+import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private filesService: FilesService,
+  ) {}
 
-  async create(userId: number, createPostDto: CreatePostDto) {
-    try {
-      const post = await this.prisma.post.create({
-        data: {
-          text: createPostDto.text,
-          userId: userId,
-          files: {
-            create: createPostDto.files,
-          },
-        },
-        select: {
-          id: true,
-          text: true,
-          createdAt: true,
-          updatedAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-            },
-          },
-          files: {
-            select: {
-              id: true,
-              url: true,
-              type: true,
-            },
-          },
-        },
-      });
-      return post as PostResponseDto;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      throw new BadRequestException('Не удалось создать пост');
+  async create(
+    createPostDto: { text?: string; userId: number },
+    file: Express.Multer.File,
+  ) {
+    // Проверяем существование пользователя
+    const user = await this.prisma.user.findUnique({
+      where: { id: createPostDto.userId },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
     }
-  }
 
-  async remove(postId: number, userId: number) {
-    try {
-      // Сначала находим пост чтобы проверить существование и владельца
-      const post = await this.prisma.post.findUnique({
-        where: { id: postId },
-        select: {
-          id: true,
-          userId: true,
+    // Валидируем файл
+    this.filesService.validateFile(file);
+
+    // Генерируем имя файла и сохраняем
+    const fileName = this.filesService.generateFileName(file.originalname);
+    const filePath = join(this.filesService.uploadPath, fileName);
+
+    // Используем импортированный writeFileSync вместо require
+    writeFileSync(filePath, file.buffer);
+
+    const fileType = this.filesService.getFileType(file.mimetype);
+    const fileUrl = `/uploads/${fileName}`;
+
+    return await this.prisma.post.create({
+      data: {
+        text: createPostDto.text,
+        userId: createPostDto.userId,
+        file: {
+          create: {
+            url: fileUrl,
+            type: fileType,
+          },
         },
-      });
-
-      if (!post) {
-        throw new NotFoundException('Пост не найден');
-      }
-
-      // Проверяем что пользователь является владельцем поста
-      if (post.userId !== userId) {
-        throw new ForbiddenException('Вы можете удалять только свои посты');
-      }
-
-      // Удаляем пост (каскадное удаление файлов должно быть настроено в Prisma)
-      await this.prisma.post.delete({
-        where: { id: postId },
-      });
-
-      return { message: 'Пост успешно удален' };
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof ForbiddenException
-      ) {
-        throw error;
-      }
-
-      console.error('Post deletion error:', error);
-      throw new BadRequestException('Не удалось удалить пост');
-    }
-  }
-
-  async findAll() {
-    return this.prisma.post.findMany({
+      },
       include: {
+        file: true,
         user: {
           select: {
             id: true,
             name: true,
+            email: true,
             avatarUrl: true,
           },
         },
-        files: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
       },
     });
   }

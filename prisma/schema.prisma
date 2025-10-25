@@ -28,7 +28,7 @@ model Post {
 
   userId       Int
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  files        PostFile[]
+  file         PostFile?
 
   @@map("posts")
 }
@@ -38,8 +38,8 @@ model PostFile {
   url          String
   type         FileType
 
-  postId       Int
-  post         Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId       Int      @unique
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   
   @@map("post_files")
 }
