@@ -6,6 +6,9 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Get,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -35,5 +38,16 @@ export class PostsController {
       file,
     );
     return result;
+  }
+
+  @Get()
+  async getAll() {
+    return await this.postsService.getAll();
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Request() req) {
+    const userId = req.user.id;
+    return await this.postsService.delete(+id, userId);
   }
 }
