@@ -61,6 +61,8 @@ export class PostsService {
             avatarUrl: true,
           },
         },
+        likes: { include: { user: { select: { id: true, name: true } } } },
+        comments: { include: { user: { select: { id: true, name: true } } } },
       },
     });
   }
@@ -68,16 +70,15 @@ export class PostsService {
   async getAll() {
     return await this.prisma.post.findMany({
       orderBy: { createdAt: 'desc' },
+
       include: {
         file: true,
+
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
+          select: { id: true, name: true, email: true, avatarUrl: true },
         },
+        likes: { include: { user: { select: { id: true, name: true } } } },
+        comments: { include: { user: { select: { id: true, name: true } } } },
       },
     });
   }
@@ -114,5 +115,59 @@ export class PostsService {
     await this.prisma.post.delete({ where: { id } });
 
     return { message: 'Post and file deleted successfully' };
+  }
+
+  async toggleLike(postId: number, userId: number) {
+    // Проверяем существование поста
+    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('Post not found');
+
+    // Проверяем существование пользователя
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new ForbiddenException('User not found');
+
+    // Проверяем, есть ли уже лайк
+    const existingLike = await this.prisma.like.findUnique({
+      where: { userId_postId: { userId, postId } },
+    });
+
+    if (existingLike) {
+      // Лайк есть → удаляем
+      await this.prisma.like.delete({
+        where: { id: existingLike.id },
+      });
+      return { message: 'Like removed' };
+    } else {
+      // Лайка нет → создаем
+      const like = await this.prisma.like.create({
+        data: { userId, postId },
+        include: { user: { select: { id: true, name: true } } },
+      });
+      return like;
+    }
+  }
+
+  async addComment(postId: number, userId: number, text: string) {
+    // Проверяем существование поста
+    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('Post not found');
+
+    // Проверяем существование пользователя
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new ForbiddenException('User not found');
+
+    // Создаем комментарий
+    return this.prisma.comment.create({
+      data: {
+        text,
+        userId,
+        postId,
+      },
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+      },
+    });
   }
 }

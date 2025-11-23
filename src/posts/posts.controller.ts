@@ -48,6 +48,23 @@ export class PostsController {
   @Delete(':id')
   async delete(@Param('id') id: string, @Request() req) {
     const userId = req.user.id;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return await this.postsService.delete(+id, userId);
+  }
+
+  @Post(':id/like')
+  async toggleLike(
+    @Param('id') postId: number,
+    @Body('userId') userId: number,
+  ) {
+    return this.postsService.toggleLike(postId, userId);
+  }
+
+  @Post(':id/comment')
+  async addComment(
+    @Param('id') postId: number,
+    @Body() body: { userId: number; text: string },
+  ) {
+    return this.postsService.addComment(postId, body.userId, body.text);
   }
 }
