@@ -97,7 +97,7 @@ export class PostsService {
     if (fileUrl) {
       // удаляем ведущие слеши, чтобы join работал корректно
       const relativePath = fileUrl.replace(/^\/+/, '');
-      const filePath = join(process.cwd(), relativePath as string);
+      const filePath = join(process.cwd(), relativePath);
 
       try {
         if (existsSync(filePath)) {
