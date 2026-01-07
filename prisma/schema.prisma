@@ -15,5 +15,67 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  posts Post[]
+  likes     Like[]
+  comments  Comment[]
+
   @@map("users")
+}
+
+model Post {
+  id           Int      @id @default(autoincrement())
+  text         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId       Int
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file         PostFile?
+    likes      Like[]
+  comments     Comment[]
+
+  @@map("posts")
+}
+
+model PostFile {
+  id           Int      @id @default(autoincrement())
+  url          String
+  type         FileType
+
+  postId       Int      @unique
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@map("post_files")
+}
+
+enum FileType {
+  VIDEO
+  IMAGE
+  OTHER
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
 }
