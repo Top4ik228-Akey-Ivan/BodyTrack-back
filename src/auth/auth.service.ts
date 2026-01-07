@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { RegisterDto, LoginDto, RegisterResponseDto } from './dto/auth.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -74,6 +75,10 @@ export class AuthService {
       user: this.excludePassword(user),
       accessToken,
     };
+  }
+
+  me(user: User) {
+    return this.excludePassword(user);
   }
 
   private excludePassword(user: any): RegisterResponseDto {
