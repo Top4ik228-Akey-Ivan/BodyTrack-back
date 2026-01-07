@@ -67,4 +67,16 @@ export class AuthController {
   me(@Request() req: RequestWithUser) {
     return this.authService.me(req.user);
   }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.cookie('token', '', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    });
+    return { message: 'Logged out' };
+  }
 }
