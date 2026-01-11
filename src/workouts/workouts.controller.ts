@@ -1,5 +1,14 @@
-// src/workouts/workouts.controller.ts
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkoutsService } from './workouts.service';
 import { CreateWorkoutDto } from './dto/create-workouts.dto';
@@ -17,5 +26,15 @@ export class WorkoutsController {
       ...createWorkoutDto,
       userId,
     });
+  }
+
+  @Get('')
+  async getMyWorkouts(@Request() req) {
+    return await this.workoutsService.getMyWorkouts(req.user.id as number);
+  }
+
+  @Delete(':id')
+  async deleteWorkout(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return await this.workoutsService.deleteWorkout(id, req.user.id as number);
   }
 }
