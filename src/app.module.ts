@@ -6,6 +6,7 @@ import { FilesService } from './files/files.service';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { WorkoutsModule } from './workouts/workouts.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { join } from 'path';
     UsersModule,
     AuthModule,
     PostsModule,
+    WorkoutsModule,
   ],
   controllers: [],
   providers: [FilesService],
