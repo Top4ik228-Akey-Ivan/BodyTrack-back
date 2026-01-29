@@ -15,12 +15,66 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  workouts Workout[]
+  exercises Exercise[]
   posts Post[]
   likes     Like[]
   comments  Comment[]
 
   @@map("users")
 }
+
+model Workout {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  desc      String?
+  createdAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises WorkoutExercise[]
+
+  @@map("workouts")
+}
+
+model Exercise {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  desc        String?
+  muscleGroup String
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workouts    WorkoutExercise[]
+
+  @@map("exercises")
+}
+
+model WorkoutExercise {
+  id         Int @id @default(autoincrement())
+  workoutId  Int
+  exerciseId Int
+  orderIndex Int
+
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sets       Set[]
+
+  @@unique([workoutId, exerciseId])
+  @@map("workout_exercises")
+}
+
+model Set {
+  id                Int @id @default(autoincrement())
+  workoutExerciseId Int
+  weight     Float?
+  reps       Int
+  orderIndex Int
+
+  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  @@map("sets")
+}
+
 
 model Post {
   id           Int      @id @default(autoincrement())
@@ -31,7 +85,7 @@ model Post {
   userId       Int
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
   file         PostFile?
-    likes      Like[]
+  likes      Like[]
   comments     Comment[]
 
   @@map("posts")
