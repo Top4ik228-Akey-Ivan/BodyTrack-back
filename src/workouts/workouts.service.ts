@@ -43,6 +43,27 @@ export class WorkoutsService {
     });
   }
 
+  async getWorkoutById(workoutId: number, userId: number) {
+    const workout = await this.prisma.workout.findFirst({
+      where: {
+        id: workoutId,
+        userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        desc: true,
+        createdAt: true,
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Workout not found');
+    }
+
+    return workout;
+  }
+
   async deleteWorkout(workoutId: number, userId: number) {
     const workout = await this.prisma.workout.findUnique({
       where: { id: workoutId },

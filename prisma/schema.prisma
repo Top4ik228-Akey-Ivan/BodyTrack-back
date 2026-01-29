@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  ARMS
+  CORE
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -30,19 +39,22 @@ model Workout {
   title     String
   desc      String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercises WorkoutExercise[]
 
   @@map("workouts")
 }
 
 model Exercise {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   userId      Int
   title       String
   desc        String?
-  muscleGroup String
+  muscleGroup MuscleGroup
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   workouts    WorkoutExercise[]
@@ -60,21 +72,21 @@ model WorkoutExercise {
   exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   sets       Set[]
 
-  @@unique([workoutId, exerciseId])
+  @@unique([workoutId, orderIndex])
   @@map("workout_exercises")
 }
 
 model Set {
   id                Int @id @default(autoincrement())
   workoutExerciseId Int
-  weight     Float?
-  reps       Int
-  orderIndex Int
+  weight            Float?
+  reps              Int
+  orderIndex        Int
 
   workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+
   @@map("sets")
 }
-
 
 model Post {
   id           Int      @id @default(autoincrement())
