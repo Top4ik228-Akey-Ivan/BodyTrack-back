@@ -36,8 +36,6 @@ export class ExercisesService {
         title: true,
         desc: true,
         muscleGroup: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
   }
