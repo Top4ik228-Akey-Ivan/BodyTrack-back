@@ -54,6 +54,31 @@ export class WorkoutsService {
         title: true,
         desc: true,
         createdAt: true,
+        exercises: {
+          orderBy: {
+            orderIndex: 'asc',
+          },
+          select: {
+            orderIndex: true,
+            exercise: {
+              select: {
+                id: true,
+                title: true,
+                desc: true,
+                muscleGroup: true,
+              },
+            },
+            sets: {
+              orderBy: { orderIndex: 'asc' },
+              select: {
+                id: true,
+                weight: true,
+                reps: true,
+                orderIndex: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -61,7 +86,17 @@ export class WorkoutsService {
       throw new NotFoundException('Workout not found');
     }
 
-    return workout;
+    return {
+      ...workout,
+      exercises: workout.exercises.map((we) => ({
+        exerciseId: we.exercise.id,
+        title: we.exercise.title,
+        desc: we.exercise.desc,
+        muscleGroup: we.exercise.muscleGroup,
+        orderIndex: we.orderIndex,
+        sets: we.sets,
+      })),
+    };
   }
 
   async deleteWorkout(workoutId: number, userId: number) {
