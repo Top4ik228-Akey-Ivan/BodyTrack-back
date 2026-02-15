@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { AddExerciseToWorkoutDto } from './dto/add-exercise-to-workout.dto';
+import { CreateSetDto } from './dto/create-set.dto';
 
 @Injectable()
 export class WorkoutExercisesService {
@@ -61,6 +62,114 @@ export class WorkoutExercisesService {
             muscleGroup: true,
           },
         },
+      },
+    });
+  }
+
+  async getWorkoutExerciseById(
+    workoutId: number,
+    workoutExerciseId: number,
+    userId: number,
+  ) {
+    const workoutExercise = await this.prisma.workoutExercise.findFirst({
+      where: {
+        id: workoutExerciseId,
+        workoutId,
+        workout: {
+          userId,
+        },
+      },
+      select: {
+        exercise: {
+          select: {
+            title: true,
+            desc: true,
+          },
+        },
+        sets: {
+          orderBy: { orderIndex: 'asc' },
+          select: {
+            id: true,
+            weight: true,
+            reps: true,
+            orderIndex: true,
+          },
+        },
+      },
+    });
+
+    if (!workoutExercise) {
+      throw new NotFoundException('WorkoutExercise not found');
+    }
+
+    return {
+      title: workoutExercise.exercise.title,
+      desc: workoutExercise.exercise.desc,
+      sets: workoutExercise.sets,
+    };
+  }
+
+  async createSet(
+    workoutExerciseId: number,
+    dto: CreateSetDto,
+    userId: number,
+  ) {
+    // Проверяем, что упражнение в тренировке существует
+    // и что тренировка принадлежит пользователю
+    const workoutExercise = await this.prisma.workoutExercise.findFirst({
+      where: {
+        id: workoutExerciseId,
+        workout: {
+          userId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!workoutExercise) {
+      throw new ForbiddenException('Нет доступа к упражнению в тренировке');
+    }
+
+    // Создаём подход
+    return this.prisma.set.create({
+      data: {
+        workoutExerciseId,
+        weight: dto.weight,
+        reps: dto.reps,
+        orderIndex: dto.orderIndex,
+      },
+      select: {
+        id: true,
+        weight: true,
+        reps: true,
+        orderIndex: true,
+      },
+    });
+  }
+
+  async deleteSet(workoutExerciseId: number, setId: number, userId: number) {
+    const set = await this.prisma.set.findFirst({
+      where: {
+        id: setId,
+        workoutExerciseId,
+        workoutExercise: {
+          workout: {
+            userId,
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!set) {
+      throw new ForbiddenException('Нет доступа к подходу');
+    }
+
+    return this.prisma.set.delete({
+      where: {
+        id: setId,
       },
     });
   }

@@ -59,6 +59,7 @@ export class WorkoutsService {
             orderIndex: 'asc',
           },
           select: {
+            id: true,
             orderIndex: true,
             exercise: {
               select: {
@@ -89,6 +90,7 @@ export class WorkoutsService {
     return {
       ...workout,
       exercises: workout.exercises.map((we) => ({
+        workoutExerciseId: we.id,
         exerciseId: we.exercise.id,
         title: we.exercise.title,
         desc: we.exercise.desc,
