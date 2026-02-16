@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkoutExercisesService } from './workout-exercises.service';
 import { AddExerciseToWorkoutDto } from './dto/add-exercise-to-workout.dto';
 import { CreateSetDto } from './dto/create-set.dto';
+import { UpdateSetDto } from './dto/update-set.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workouts/:workoutId/exercises')
@@ -54,6 +56,21 @@ export class WorkoutExercisesController {
   ) {
     return await this.workoutExercisesService.createSet(
       Number(workoutExerciseId),
+      dto,
+      req.user.id as number,
+    );
+  }
+
+  @Patch(':workoutExerciseId/sets/:setId')
+  async updateSet(
+    @Param('workoutExerciseId') workoutExerciseId: string,
+    @Param('setId') setId: string,
+    @Body() dto: UpdateSetDto,
+    @Request() req,
+  ) {
+    return await this.workoutExercisesService.updateSet(
+      Number(workoutExerciseId),
+      Number(setId),
       dto,
       req.user.id as number,
     );

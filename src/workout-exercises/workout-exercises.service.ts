@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma.service';
 import { AddExerciseToWorkoutDto } from './dto/add-exercise-to-workout.dto';
 import { CreateSetDto } from './dto/create-set.dto';
+import { UpdateSetDto } from './dto/update-set.dto';
 
 @Injectable()
 export class WorkoutExercisesService {
@@ -139,6 +140,44 @@ export class WorkoutExercisesService {
         weight: dto.weight,
         reps: dto.reps,
         orderIndex: dto.orderIndex,
+      },
+      select: {
+        id: true,
+        weight: true,
+        reps: true,
+        orderIndex: true,
+      },
+    });
+  }
+
+  async updateSet(
+    workoutExerciseId: number,
+    setId: number,
+    dto: UpdateSetDto,
+    userId: number,
+  ) {
+    const set = await this.prisma.set.findFirst({
+      where: {
+        id: setId,
+        workoutExerciseId,
+        workoutExercise: {
+          workout: {
+            userId,
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!set) {
+      throw new ForbiddenException('Нет доступа к подходу');
+    }
+
+    return this.prisma.set.update({
+      where: { id: setId },
+      data: {
+        ...(dto.weight !== undefined && { weight: dto.weight }),
+        ...(dto.reps !== undefined && { reps: dto.reps }),
       },
       select: {
         id: true,
