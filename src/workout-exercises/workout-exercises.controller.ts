@@ -61,6 +61,19 @@ export class WorkoutExercisesController {
     );
   }
 
+  @Delete(':workoutExerciseId')
+  async deleteWorkoutExercise(
+    @Param('workoutId') workoutId: string,
+    @Param('workoutExerciseId') workoutExerciseId: string,
+    @Request() req,
+  ) {
+    return await this.workoutExercisesService.deleteWorkoutExercise(
+      Number(workoutId),
+      Number(workoutExerciseId),
+      req.user.id as number,
+    );
+  }
+
   @Patch(':workoutExerciseId/sets/:setId')
   async updateSet(
     @Param('workoutExerciseId') workoutExerciseId: string,

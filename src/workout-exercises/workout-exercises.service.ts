@@ -110,6 +110,47 @@ export class WorkoutExercisesService {
     };
   }
 
+  async deleteWorkoutExercise(
+    workoutId: number,
+    workoutExerciseId: number,
+    userId: number,
+  ) {
+    return await this.prisma.$transaction(async (tx) => {
+      const workoutExercise = await tx.workoutExercise.findFirst({
+        where: {
+          id: workoutExerciseId,
+          workoutId,
+          workout: { userId },
+        },
+      });
+
+      if (!workoutExercise) {
+        throw new NotFoundException('WorkoutExercise not found');
+      }
+
+      // удаляем
+      await tx.workoutExercise.delete({
+        where: { id: workoutExerciseId },
+      });
+
+      // получаем оставшиеся упражнения
+      const exercises = await tx.workoutExercise.findMany({
+        where: { workoutId },
+        orderBy: { orderIndex: 'asc' },
+      });
+
+      // пересчитываем индексы
+      for (let i = 0; i < exercises.length; i++) {
+        await tx.workoutExercise.update({
+          where: { id: exercises[i].id },
+          data: { orderIndex: i + 1 },
+        });
+      }
+
+      return { success: true };
+    });
+  }
+
   async createSet(
     workoutExerciseId: number,
     dto: CreateSetDto,
