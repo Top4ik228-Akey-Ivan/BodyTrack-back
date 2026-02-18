@@ -43,6 +43,64 @@ export class WorkoutsService {
     });
   }
 
+  async getWorkoutById(workoutId: number, userId: number) {
+    const workout = await this.prisma.workout.findFirst({
+      where: {
+        id: workoutId,
+        userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        desc: true,
+        createdAt: true,
+        exercises: {
+          orderBy: {
+            orderIndex: 'asc',
+          },
+          select: {
+            id: true,
+            orderIndex: true,
+            exercise: {
+              select: {
+                id: true,
+                title: true,
+                desc: true,
+                muscleGroup: true,
+              },
+            },
+            sets: {
+              orderBy: { orderIndex: 'asc' },
+              select: {
+                id: true,
+                weight: true,
+                reps: true,
+                orderIndex: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Workout not found');
+    }
+
+    return {
+      ...workout,
+      exercises: workout.exercises.map((we) => ({
+        workoutExerciseId: we.id,
+        exerciseId: we.exercise.id,
+        title: we.exercise.title,
+        desc: we.exercise.desc,
+        muscleGroup: we.exercise.muscleGroup,
+        orderIndex: we.orderIndex,
+        sets: we.sets,
+      })),
+    };
+  }
+
   async deleteWorkout(workoutId: number, userId: number) {
     const workout = await this.prisma.workout.findUnique({
       where: { id: workoutId },

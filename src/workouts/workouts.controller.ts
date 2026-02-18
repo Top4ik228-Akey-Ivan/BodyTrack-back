@@ -33,6 +33,11 @@ export class WorkoutsController {
     return await this.workoutsService.getMyWorkouts(req.user.id as number);
   }
 
+  @Get(':id')
+  async getWorkoutById(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return await this.workoutsService.getWorkoutById(id, req.user.id as number);
+  }
+
   @Delete(':id')
   async deleteWorkout(@Param('id', ParseIntPipe) id: number, @Request() req) {
     return await this.workoutsService.deleteWorkout(id, req.user.id as number);
