@@ -9,6 +9,7 @@ import { join } from 'path';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { WorkoutExercisesModule } from './workout-exercises/workout-exercises.module';
+import { WorkoutWeeksModule } from './workout-weeks/workout-weeks.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { WorkoutExercisesModule } from './workout-exercises/workout-exercises.mo
     WorkoutsModule,
     ExercisesModule,
     WorkoutExercisesModule,
+    WorkoutWeeksModule,
   ],
   controllers: [],
   providers: [FilesService],

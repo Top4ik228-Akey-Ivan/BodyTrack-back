@@ -43,6 +43,7 @@ model Workout {
 
   user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercises WorkoutExercise[]
+  weeks WorkoutWeek[]
 
   @@map("workouts")
 }
@@ -71,6 +72,7 @@ model WorkoutExercise {
   workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   sets       Set[]
+  weeks WorkoutExerciseWeek[]
 
   @@unique([workoutId, orderIndex])
   @@map("workout_exercises")
@@ -84,9 +86,51 @@ model Set {
   orderIndex        Int
 
   workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  weeks SetWeek[]
 
   @@map("sets")
 }
+
+////////// НОВЫЕ  //////////
+
+model WorkoutWeek {
+  id        Int @id @default(autoincrement())
+  workoutId Int
+  weekIndex Int
+  createdAt DateTime @default(now())
+
+  workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercises WorkoutExerciseWeek[]
+
+  @@unique([workoutId, weekIndex])
+}
+
+model WorkoutExerciseWeek {
+  id                Int @id @default(autoincrement())
+  workoutWeekId     Int
+  workoutExerciseId Int
+
+  workoutWeek       WorkoutWeek @relation(fields: [workoutWeekId], references: [id], onDelete: Cascade)
+  workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  sets              SetWeek[]
+
+  @@unique([workoutWeekId, workoutExerciseId])
+}
+
+model SetWeek {
+  id                     Int @id @default(autoincrement())
+  workoutExerciseWeekId  Int
+  setId                  Int
+  weight                 Float?
+  reps                   Int
+
+  workoutExerciseWeek    WorkoutExerciseWeek @relation(fields: [workoutExerciseWeekId], references: [id], onDelete: Cascade)
+  set                    Set @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutExerciseWeekId, setId])
+}
+
+
 
 model Post {
   id           Int      @id @default(autoincrement())

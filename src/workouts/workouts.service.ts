@@ -11,18 +11,27 @@ export class WorkoutsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateWorkoutDto & { userId: number }) {
-    return await this.prisma.workout.create({
-      data: {
-        title: dto.title,
-        desc: dto.desc,
-        userId: dto.userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        desc: true,
-        createdAt: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const workout = await tx.workout.create({
+        data: {
+          title: dto.title,
+          desc: dto.desc,
+          userId: dto.userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          desc: true,
+          createdAt: true,
+        },
+      });
+
+      await tx.workoutWeek.create({
+        data: {
+          workoutId: workout.id,
+          weekIndex: 1,
+        },
+      });
     });
   }
 
