@@ -5,8 +5,8 @@ import { PrismaService } from 'src/prisma.service';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [AuthModule],
-  providers: [ExercisesService, PrismaService],
-  controllers: [ExercisesController],
+    imports: [AuthModule],
+    providers: [ExercisesService, PrismaService],
+    controllers: [ExercisesController],
 })
 export class ExercisesModule {}

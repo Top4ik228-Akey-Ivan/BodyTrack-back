@@ -26,12 +26,16 @@ export class WorkoutsService {
         },
       });
 
-      await tx.workoutWeek.create({
+      const firstWeek = await tx.workoutWeek.create({
         data: {
           workoutId: workout.id,
           weekIndex: 1,
         },
       });
+      return {
+        ...workout,
+        firstWeek,
+      };
     });
   }
 
@@ -52,63 +56,54 @@ export class WorkoutsService {
     });
   }
 
-  async getWorkoutById(workoutId: number, userId: number) {
+async getWorkoutById(workoutId: number, userId: number) {
     const workout = await this.prisma.workout.findFirst({
-      where: {
-        id: workoutId,
-        userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        desc: true,
-        createdAt: true,
-        exercises: {
-          orderBy: {
-            orderIndex: 'asc',
-          },
-          select: {
-            id: true,
-            orderIndex: true,
-            exercise: {
-              select: {
-                id: true,
-                title: true,
-                desc: true,
-                muscleGroup: true,
-              },
+        where: { id: workoutId, userId },
+        include: {
+            weeks: {
+                orderBy: { weekIndex: 'asc' },
+                include: {
+                    exercises: {
+                        orderBy: { orderIndex: 'asc' },
+                        include: {
+                            sets: { orderBy: { orderIndex: 'asc' } },
+                            exercise: true,
+                        },
+                    },
+                },
             },
-            sets: {
-              orderBy: { orderIndex: 'asc' },
-              select: {
-                id: true,
-                weight: true,
-                reps: true,
-                orderIndex: true,
-              },
-            },
-          },
         },
-      },
     });
 
-    if (!workout) {
-      throw new NotFoundException('Workout not found');
-    }
+    if (!workout) throw new NotFoundException('Workout not found');
+
+    // Преобразуем вложенный объект exercise в "плоский" массив
+    const weeks = workout.weeks.map((week) => ({
+        id: week.id,
+        weekIndex: week.weekIndex,
+        createdAt: week.createdAt,
+        exercises: week.exercises.map((we) => ({
+            workoutExerciseWeekId: we.id,
+            exerciseId: we.exerciseId,
+            title: we.exercise.title,
+            desc: we.exercise.desc,
+            muscleGroup: we.exercise.muscleGroup,
+            orderIndex: we.orderIndex,
+            sets: we.sets,
+        })),
+    }));
 
     return {
-      ...workout,
-      exercises: workout.exercises.map((we) => ({
-        workoutExerciseId: we.id,
-        exerciseId: we.exercise.id,
-        title: we.exercise.title,
-        desc: we.exercise.desc,
-        muscleGroup: we.exercise.muscleGroup,
-        orderIndex: we.orderIndex,
-        sets: we.sets,
-      })),
+        id: workout.id,
+        userId: workout.userId,
+        title: workout.title,
+        desc: workout.desc,
+        createdAt: workout.createdAt,
+        updatedAt: workout.updatedAt,
+        weeks,
+        exercises: [],
     };
-  }
+}
 
   async deleteWorkout(workoutId: number, userId: number) {
     const workout = await this.prisma.workout.findUnique({
