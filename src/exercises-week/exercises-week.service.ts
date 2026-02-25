@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { AddExerciseToWeekDto } from './dto/add-exerciseWeek.dto';
+import { AddSetDto } from './dto/add-set.dto';
 
 @Injectable()
 export class ExercisesWeekService {
@@ -72,5 +73,42 @@ export class ExercisesWeekService {
         });
 
         return { message: 'Упражнение удалено' };
+    }
+
+    async addSetToExercise(
+        workoutId: number,
+        workoutExerciseWeekId: number,
+        dto: AddSetDto,
+        userId: number,
+    ) {
+        // Проверяем что упражнение существует и принадлежит пользователю
+        const workoutExercise =
+            await this.prisma.workoutExerciseWeek.findFirst({
+                where: {
+                    id: workoutExerciseWeekId,
+                    workoutWeek: {
+                        workoutId,
+                        workout: { userId },
+                    },
+                },
+            });
+
+        if (!workoutExercise) {
+            throw new NotFoundException(
+                'Упражнение недели не найдено',
+            );
+        }
+
+        // Создаём подход
+        const set = await this.prisma.setWeek.create({
+            data: {
+                workoutExerciseWeekId,
+                reps: dto.reps,
+                weight: dto.weight,
+                orderIndex: dto.orderIndex,
+            },
+        });
+
+        return set;
     }
 }

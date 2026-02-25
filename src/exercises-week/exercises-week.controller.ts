@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AddExerciseToWeekDto } from './dto/add-exerciseWeek.dto';
 import { ExercisesWeekService } from './exercises-week.service';
+import { AddSetDto } from './dto/add-set.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workouts')
@@ -40,6 +41,22 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.removeExerciseFromWeek(
             workoutId,
             workoutExerciseWeekId,
+            req.user.id,
+        );
+    }
+
+    @Post(':workoutId/exercises/:workoutExerciseWeekId/sets')
+    async addSet(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Param('workoutExerciseWeekId', ParseIntPipe)
+        workoutExerciseWeekId: number,
+        @Body() dto: AddSetDto,
+        @Req() req,
+    ) {
+        return this.exercisesWeekService.addSetToExercise(
+            workoutId,
+            workoutExerciseWeekId,
+            dto,
             req.user.id,
         );
     }
