@@ -2,8 +2,10 @@ import {
     Body,
     Controller,
     Delete,
+    Get,
     Param,
     ParseIntPipe,
+    Patch,
     Post,
     Req,
     UseGuards,
@@ -12,6 +14,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AddExerciseToWeekDto } from './dto/add-exerciseWeek.dto';
 import { ExercisesWeekService } from './exercises-week.service';
 import { AddSetDto } from './dto/add-set.dto';
+import { UpdateSetWeekDto } from './dto/update-set.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workouts')
@@ -27,6 +30,20 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.addExerciseToWeek(
             workoutId,
             dto,
+            req.user.id,
+        );
+    }
+
+    @Get(':workoutId/exercises/:workoutExerciseWeekId')
+    async getExercise(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Param('workoutExerciseWeekId', ParseIntPipe)
+        workoutExerciseWeekId: number,
+        @Req() req,
+    ) {
+        return this.exercisesWeekService.getExerciseWeekById(
+            workoutId,
+            workoutExerciseWeekId,
             req.user.id,
         );
     }
@@ -57,6 +74,40 @@ export class ExercisesWeekController {
             workoutId,
             workoutExerciseWeekId,
             dto,
+            req.user.id,
+        );
+    }
+
+    @Patch(':workoutId/exercises/:workoutExerciseWeekId/sets/:setId')
+    async updateSet(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Param('workoutExerciseWeekId', ParseIntPipe)
+        workoutExerciseWeekId: number,
+        @Param('setId', ParseIntPipe) setId: number,
+        @Body() dto: UpdateSetWeekDto,
+        @Req() req,
+    ) {
+        return this.exercisesWeekService.updateSet(
+            workoutId,
+            workoutExerciseWeekId,
+            setId,
+            req.user.id,
+            dto,
+        );
+    }
+
+    @Delete(':workoutId/exercises/:workoutExerciseWeekId/sets/:setId')
+    async removeSet(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Param('workoutExerciseWeekId', ParseIntPipe)
+        workoutExerciseWeekId: number,
+        @Param('setId', ParseIntPipe) setId: number,
+        @Req() req,
+    ) {
+        return this.exercisesWeekService.removeSetFromExercise(
+            workoutId,
+            workoutExerciseWeekId,
+            setId,
             req.user.id,
         );
     }
