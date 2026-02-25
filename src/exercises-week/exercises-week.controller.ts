@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Param,
     ParseIntPipe,
     Post,
@@ -25,6 +26,20 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.addExerciseToWeek(
             workoutId,
             dto,
+            req.user.id,
+        );
+    }
+
+    @Delete(':workoutId/exercises/:workoutExerciseWeekId')
+    async removeExercise(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Param('workoutExerciseWeekId', ParseIntPipe)
+        workoutExerciseWeekId: number,
+        @Req() req,
+    ) {
+        return this.exercisesWeekService.removeExerciseFromWeek(
+            workoutId,
+            workoutExerciseWeekId,
             req.user.id,
         );
     }

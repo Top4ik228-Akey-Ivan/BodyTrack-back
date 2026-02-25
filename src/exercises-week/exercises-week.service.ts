@@ -42,4 +42,35 @@ export class ExercisesWeekService {
             sets: [],
         };
     }
+
+    async removeExerciseFromWeek(
+        workoutId: number,
+        workoutExerciseWeekId: number,
+        userId: number,
+    ) {
+        // Проверяем, что упражнение существует и принадлежит пользователю
+        const workoutExercise =
+            await this.prisma.workoutExerciseWeek.findFirst({
+                where: {
+                    id: workoutExerciseWeekId,
+                    workoutWeek: {
+                        workoutId,
+                        workout: { userId },
+                    },
+                },
+            });
+
+        if (!workoutExercise) {
+            throw new NotFoundException(
+                'Упражнение в этой неделе не найдено',
+            );
+        }
+
+        // Удаляем (если у тебя onDelete: Cascade, подходы удалятся сами)
+        await this.prisma.workoutExerciseWeek.delete({
+            where: { id: workoutExerciseWeekId },
+        });
+
+        return { message: 'Упражнение удалено' };
+    }
 }

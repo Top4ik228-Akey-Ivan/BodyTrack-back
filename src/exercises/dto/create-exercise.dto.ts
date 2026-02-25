@@ -2,13 +2,13 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { MuscleGroup } from '@prisma/client';
 
 export class CreateExerciseDto {
-  @IsString()
-  title: string;
+    @IsString()
+    title: string;
 
-  @IsOptional()
-  @IsString()
-  desc?: string;
+    @IsOptional()
+    @IsString()
+    desc?: string;
 
-  @IsEnum(MuscleGroup)
-  muscleGroup: MuscleGroup;
+    @IsEnum(MuscleGroup)
+    muscleGroup: MuscleGroup;
 }
