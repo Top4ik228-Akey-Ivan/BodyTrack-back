@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { AddExerciseToWeekDto } from './dto/add-exerciseWeek.dto';
 import { AddSetDto } from './dto/add-set.dto';
@@ -6,7 +10,7 @@ import { UpdateSetWeekDto } from './dto/update-set.dto';
 
 @Injectable()
 export class ExercisesWeekService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async addExerciseToWeek(
         workoutId: number,
@@ -26,13 +30,14 @@ export class ExercisesWeekService {
         if (!exercise) throw new NotFoundException('Упражнение не найдено');
 
         // Создаём WorkoutExerciseWeek (без SetWeek)
-        const workoutExerciseWeek = await this.prisma.workoutExerciseWeek.create({
-            data: {
-                workoutWeekId: week.id,
-                exerciseId: exercise.id,
-                orderIndex: dto.orderIndex,
-            },
-        });
+        const workoutExerciseWeek =
+            await this.prisma.workoutExerciseWeek.create({
+                data: {
+                    workoutWeekId: week.id,
+                    exerciseId: exercise.id,
+                    orderIndex: dto.orderIndex,
+                },
+            });
 
         return {
             workoutExerciseWeekId: workoutExerciseWeek.id,
@@ -50,8 +55,8 @@ export class ExercisesWeekService {
         workoutExerciseWeekId: number,
         userId: number,
     ) {
-        const workoutExercise =
-            await this.prisma.workoutExerciseWeek.findFirst({
+        const workoutExercise = await this.prisma.workoutExerciseWeek.findFirst(
+            {
                 where: {
                     id: workoutExerciseWeekId,
                     workoutWeek: {
@@ -65,12 +70,11 @@ export class ExercisesWeekService {
                         orderBy: { orderIndex: 'asc' },
                     },
                 },
-            });
+            },
+        );
 
         if (!workoutExercise) {
-            throw new NotFoundException(
-                'Упражнение недели не найдено',
-            );
+            throw new NotFoundException('Упражнение недели не найдено');
         }
 
         // Возвращаем "плоскую" структуру
@@ -91,8 +95,8 @@ export class ExercisesWeekService {
         userId: number,
     ) {
         // Проверяем, что упражнение существует и принадлежит пользователю
-        const workoutExercise =
-            await this.prisma.workoutExerciseWeek.findFirst({
+        const workoutExercise = await this.prisma.workoutExerciseWeek.findFirst(
+            {
                 where: {
                     id: workoutExerciseWeekId,
                     workoutWeek: {
@@ -100,12 +104,11 @@ export class ExercisesWeekService {
                         workout: { userId },
                     },
                 },
-            });
+            },
+        );
 
         if (!workoutExercise) {
-            throw new NotFoundException(
-                'Упражнение в этой неделе не найдено',
-            );
+            throw new NotFoundException('Упражнение в этой неделе не найдено');
         }
 
         // Удаляем (если у тебя onDelete: Cascade, подходы удалятся сами)
@@ -116,6 +119,72 @@ export class ExercisesWeekService {
         return { message: 'Упражнение удалено' };
     }
 
+    async createWeek(workoutId: number, userId: number) {
+        return this.prisma.$transaction(async (tx) => {
+            // Проверяем тренировку
+            const workout = await tx.workout.findFirst({
+                where: { id: workoutId, userId },
+            });
+
+            if (!workout) {
+                throw new NotFoundException('Тренировка не найдена');
+            }
+
+            // Находим последнюю неделю
+            const lastWeek = await tx.workoutWeek.findFirst({
+                where: { workoutId },
+                orderBy: { weekIndex: 'desc' },
+                include: {
+                    exercises: {
+                        include: {
+                            sets: true,
+                        },
+                    },
+                },
+            });
+
+            const newWeekIndex = lastWeek ? lastWeek.weekIndex + 1 : 1;
+
+            // Создаём новую неделю
+            const newWeek = await tx.workoutWeek.create({
+                data: {
+                    workoutId,
+                    weekIndex: newWeekIndex,
+                },
+            });
+
+            // Если это первая неделя — просто возвращаем её
+            if (!lastWeek) {
+                return newWeek;
+            }
+
+            // Копируем упражнения
+            for (const exercise of lastWeek.exercises) {
+                const newExercise = await tx.workoutExerciseWeek.create({
+                    data: {
+                        workoutWeekId: newWeek.id,
+                        exerciseId: exercise.exerciseId,
+                        orderIndex: exercise.orderIndex,
+                    },
+                });
+
+                // Копируем подходы
+                if (exercise.sets.length > 0) {
+                    await tx.setWeek.createMany({
+                        data: exercise.sets.map((set) => ({
+                            workoutExerciseWeekId: newExercise.id,
+                            weight: set.weight,
+                            reps: set.reps,
+                            orderIndex: set.orderIndex,
+                        })),
+                    });
+                }
+            }
+
+            return newWeek;
+        });
+    }
+
     async addSetToExercise(
         workoutId: number,
         workoutExerciseWeekId: number,
@@ -123,8 +192,8 @@ export class ExercisesWeekService {
         userId: number,
     ) {
         // Проверяем что упражнение существует и принадлежит пользователю
-        const workoutExercise =
-            await this.prisma.workoutExerciseWeek.findFirst({
+        const workoutExercise = await this.prisma.workoutExerciseWeek.findFirst(
+            {
                 where: {
                     id: workoutExerciseWeekId,
                     workoutWeek: {
@@ -132,12 +201,11 @@ export class ExercisesWeekService {
                         workout: { userId },
                     },
                 },
-            });
+            },
+        );
 
         if (!workoutExercise) {
-            throw new NotFoundException(
-                'Упражнение недели не найдено',
-            );
+            throw new NotFoundException('Упражнение недели не найдено');
         }
 
         // Создаём подход
@@ -161,9 +229,7 @@ export class ExercisesWeekService {
         dto: UpdateSetWeekDto,
     ) {
         if (dto.weight === undefined && dto.reps === undefined) {
-            throw new BadRequestException(
-                'Нужно передать weight или reps',
-            );
+            throw new BadRequestException('Нужно передать weight или reps');
         }
 
         const set = await this.prisma.setWeek.findFirst({

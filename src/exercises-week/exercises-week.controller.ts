@@ -19,7 +19,7 @@ import { UpdateSetWeekDto } from './dto/update-set.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('workouts')
 export class ExercisesWeekController {
-    constructor(private readonly exercisesWeekService: ExercisesWeekService) { }
+    constructor(private readonly exercisesWeekService: ExercisesWeekService) {}
 
     @Post(':workoutId/exercises')
     async addExercise(
@@ -30,7 +30,7 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.addExerciseToWeek(
             workoutId,
             dto,
-            req.user.id,
+            req.user.id as number,
         );
     }
 
@@ -44,7 +44,7 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.getExerciseWeekById(
             workoutId,
             workoutExerciseWeekId,
-            req.user.id,
+            req.user.id as number,
         );
     }
 
@@ -58,7 +58,18 @@ export class ExercisesWeekController {
         return this.exercisesWeekService.removeExerciseFromWeek(
             workoutId,
             workoutExerciseWeekId,
-            req.user.id,
+            req.user.id as number,
+        );
+    }
+
+    @Post(':workoutId/weeks')
+    async createWeek(
+        @Param('workoutId', ParseIntPipe) workoutId: number,
+        @Req() req,
+    ) {
+        return await this.exercisesWeekService.createWeek(
+            workoutId,
+            req.user.id as number,
         );
     }
 
@@ -74,7 +85,7 @@ export class ExercisesWeekController {
             workoutId,
             workoutExerciseWeekId,
             dto,
-            req.user.id,
+            req.user.id as number,
         );
     }
 
@@ -91,7 +102,7 @@ export class ExercisesWeekController {
             workoutId,
             workoutExerciseWeekId,
             setId,
-            req.user.id,
+            req.user.id as number,
             dto,
         );
     }
@@ -108,7 +119,7 @@ export class ExercisesWeekController {
             workoutId,
             workoutExerciseWeekId,
             setId,
-            req.user.id,
+            req.user.id as number,
         );
     }
 }
