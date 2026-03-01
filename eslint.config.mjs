@@ -26,7 +26,10 @@ export default tseslint.config(
   },
   {
     rules: {
+      'indent': 'off',
+      '@typescript-eslint/indent': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      'prettier/prettier': ['error', { tabWidth: 4, useTabs: false }],
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-call': 'off',

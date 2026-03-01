@@ -17,18 +17,14 @@ enum MuscleGroup {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
   name         String
   avatarUrl    String?
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  workouts Workout[]
-  exercises Exercise[]
-  posts Post[]
-  likes     Like[]
-  comments  Comment[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  workouts     Workout[]
 
   @@map("users")
 }
@@ -41,8 +37,8 @@ model Workout {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exercises WorkoutExercise[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeks     WorkoutWeek[]
 
   @@map("workouts")
 }
@@ -56,61 +52,73 @@ model Exercise {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workouts    WorkoutExercise[]
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeks    WorkoutExerciseWeek[]
 
   @@map("exercises")
 }
 
-model WorkoutExercise {
-  id         Int @id @default(autoincrement())
-  workoutId  Int
-  exerciseId Int
-  orderIndex Int
+model WorkoutWeek {
+  id        Int      @id @default(autoincrement())
+  workoutId Int
+  weekIndex Int
+  createdAt DateTime @default(now())
 
-  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
-  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  sets       Set[]
+  workout   Workout                 @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercises WorkoutExerciseWeek[]
 
-  @@unique([workoutId, orderIndex])
-  @@map("workout_exercises")
+  @@unique([workoutId, weekIndex])
 }
 
-model Set {
-  id                Int @id @default(autoincrement())
-  workoutExerciseId Int
-  weight            Float?
-  reps              Int
-  orderIndex        Int
+model WorkoutExerciseWeek {
+  id            Int @id @default(autoincrement())
+  workoutWeekId Int
+  exerciseId    Int
+  orderIndex    Int
 
-  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  workoutWeek WorkoutWeek @relation(fields: [workoutWeekId], references: [id], onDelete: Cascade)
+  exercise    Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sets        SetWeek[]
 
-  @@map("sets")
+  @@unique([workoutWeekId, orderIndex])
+  @@unique([workoutWeekId, exerciseId]) // запрещаем дубли упражнений в одной неделе
+}
+
+model SetWeek {
+  id                    Int    @id @default(autoincrement())
+  workoutExerciseWeekId  Int
+  weight                Float?
+  reps                  Int
+  orderIndex            Int
+
+  workoutExerciseWeek WorkoutExerciseWeek @relation(fields: [workoutExerciseWeekId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutExerciseWeekId, orderIndex])
 }
 
 model Post {
-  id           Int      @id @default(autoincrement())
-  text         String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  text      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  userId       Int
-  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  file         PostFile?
-  likes      Like[]
-  comments     Comment[]
+  userId   Int
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file     PostFile?
+  likes    Like[]
+  comments Comment[]
 
   @@map("posts")
 }
 
 model PostFile {
-  id           Int      @id @default(autoincrement())
-  url          String
-  type         FileType
+  id   Int      @id @default(autoincrement())
+  url  String
+  type FileType
 
-  postId       Int      @unique
-  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  postId Int  @unique
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@map("post_files")
 }
 

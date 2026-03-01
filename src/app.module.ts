@@ -8,7 +8,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { ExercisesModule } from './exercises/exercises.module';
-import { WorkoutExercisesModule } from './workout-exercises/workout-exercises.module';
+import { ExercisesWeekModule } from './exercises-week/exercises-week.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { WorkoutExercisesModule } from './workout-exercises/workout-exercises.mo
     PostsModule,
     WorkoutsModule,
     ExercisesModule,
-    WorkoutExercisesModule,
+    ExercisesWeekModule,
   ],
   controllers: [],
   providers: [FilesService],
