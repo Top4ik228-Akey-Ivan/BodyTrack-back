@@ -9,22 +9,24 @@ import { join } from 'path';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { ExercisesWeekModule } from './exercises-week/exercises-week.module';
+import { LlmModule } from './llm/llm.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'), // <-- путь к папке с файлами
-      serveRoot: '/uploads', // <-- URL-префикс
-    }),
-    UsersModule,
-    AuthModule,
-    PostsModule,
-    WorkoutsModule,
-    ExercisesModule,
-    ExercisesWeekModule,
-  ],
-  controllers: [],
-  providers: [FilesService],
+    imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), 'uploads'), // <-- путь к папке с файлами
+            serveRoot: '/uploads', // <-- URL-префикс
+        }),
+        UsersModule,
+        AuthModule,
+        PostsModule,
+        WorkoutsModule,
+        ExercisesModule,
+        ExercisesWeekModule,
+        LlmModule,
+    ],
+    controllers: [],
+    providers: [FilesService],
 })
 export class AppModule {}
