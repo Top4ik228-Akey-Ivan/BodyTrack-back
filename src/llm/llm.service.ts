@@ -56,31 +56,38 @@ export class LlmService {
         weeksCount: number,
         onChunk: (text: string) => void,
     ) {
-        const workoutData = await this.getWorkoutData(workoutId, weeksCount);
+        try {
+            const workoutData = await this.getWorkoutData(
+                workoutId,
+                weeksCount,
+            );
 
-        const stream = await this.client.chat.completions.create({
-            model: 'openrouter/free',
+            const stream = await this.client.chat.completions.create({
+                model: 'openrouter/free',
 
-            stream: true,
+                stream: true,
 
-            messages: [
-                {
-                    role: 'system',
-                    content: analyzePrompt,
-                },
-                {
-                    role: 'user',
-                    content: JSON.stringify(workoutData),
-                },
-            ],
-        });
+                messages: [
+                    {
+                        role: 'system',
+                        content: analyzePrompt,
+                    },
+                    {
+                        role: 'user',
+                        content: JSON.stringify(workoutData),
+                    },
+                ],
+            });
 
-        for await (const chunk of stream) {
-            const text = chunk.choices?.[0]?.delta?.content || '';
+            for await (const chunk of stream) {
+                const text = chunk.choices?.[0]?.delta?.content || '';
 
-            if (text) {
-                onChunk(text);
+                if (text) {
+                    onChunk(text);
+                }
             }
+        } catch (err) {
+            console.error(err);
         }
     }
 }
