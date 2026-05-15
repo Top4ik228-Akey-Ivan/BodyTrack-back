@@ -3,8 +3,8 @@ import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
-  findAll() {
-    return this.prisma.user.findMany();
-  }
+    constructor(private readonly prisma: PrismaService) {}
+    findAll() {
+        return this.prisma.user.findMany();
+    }
 }
