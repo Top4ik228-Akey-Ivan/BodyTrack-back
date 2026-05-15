@@ -10,7 +10,7 @@ export class LlmService {
     constructor(private readonly prisma: PrismaService) {
         this.client = new OpenAI({
             apiKey: process.env.OPENROUTER_API_KEY,
-            baseURL: 'https://openrouter.ai/api/v1',
+            baseURL: 'http://localhost:11434/v1',
         });
     }
 
@@ -36,13 +36,13 @@ export class LlmService {
 
         const orderedWeeks = weeks.reverse();
 
-        return {
+        const data = {
             weeks: orderedWeeks.map((week) => ({
                 week: week.weekIndex,
 
                 exercises: week.exercises.map((ex) => ({
+                    id: ex.id,
                     title: ex.exercise.title,
-
                     sets: ex.sets.map((s) => ({
                         weight: s.weight,
                         reps: s.reps,
@@ -50,6 +50,8 @@ export class LlmService {
                 })),
             })),
         };
+
+        return data;
     }
     async streamAnalyze(
         workoutId: number,
@@ -63,8 +65,9 @@ export class LlmService {
             );
 
             const stream = await this.client.chat.completions.create({
-                model: 'openrouter/free',
-
+                model: 'llama3.1:8b',
+                // model: 'openrouter/free',
+                temperature: 0.3,
                 stream: true,
 
                 messages: [
@@ -79,10 +82,20 @@ export class LlmService {
                 ],
             });
 
+            let isThinking = false;
             for await (const chunk of stream) {
                 const text = chunk.choices?.[0]?.delta?.content || '';
 
-                if (text) {
+                if (text.includes('<think>')) {
+                    isThinking = true;
+                    continue;
+                }
+                if (text.includes('</think>')) {
+                    isThinking = false;
+                    continue;
+                }
+
+                if (text && !isThinking) {
                     onChunk(text);
                 }
             }

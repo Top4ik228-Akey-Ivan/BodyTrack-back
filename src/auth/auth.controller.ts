@@ -35,16 +35,11 @@ export class AuthController {
         const { user, accessToken } = await this.authService.register(dto);
         res.cookie('token', accessToken, {
             httpOnly: true,
-            secure: false, // HTTPS только в проде
+            secure: false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
         });
-
-        console.log(
-            '[AUTH] set-cookie headers:',
-            res.getHeaders()['set-cookie'],
-        );
         return user;
     }
 
@@ -58,16 +53,11 @@ export class AuthController {
 
         res.cookie('token', accessToken, {
             httpOnly: true,
-            secure: false, // HTTPS только в проде
+            secure: false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
         });
-
-        console.log(
-            '[AUTH] set-cookie headers:',
-            res.getHeaders()['set-cookie'],
-        );
         return user;
     }
 
