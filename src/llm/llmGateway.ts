@@ -21,7 +21,8 @@ export class LlmGateway {
 
     @SubscribeMessage('startAnalyze')
     async handleAnalyze(
-        @MessageBody() data: { workoutId: number; weeks: number },
+        @MessageBody()
+        data: { workoutId: number; weeks: number; userPrompt: string },
         @ConnectedSocket() client: Socket,
     ) {
         console.log('start analyze');
@@ -29,6 +30,7 @@ export class LlmGateway {
             await this.llmService.streamAnalyze(
                 data.workoutId,
                 data.weeks,
+                data.userPrompt,
                 (chunk) => {
                     client.emit('chunk', chunk); // шлём чанки клиенту
                 },
