@@ -15,6 +15,7 @@ export class LlmController {
         await this.llmService.streamAnalyze(
             dto.workoutId,
             dto.weeks,
+            dto.userPrompt,
             (chunk) => {
                 console.log(chunk);
                 res.write(chunk);
