@@ -24,10 +24,17 @@ export class ExercisesWeekService {
         if (!week) throw new NotFoundException('Неделя не найдена');
 
         // Проверяем упражнение
+        // Проверяем упражнение
         const exercise = await this.prisma.exercise.findFirst({
-            where: { id: dto.exerciseId, userId },
+            where: {
+                id: dto.exerciseId,
+                OR: [{ isPublic: true }, { userId }],
+            },
         });
-        if (!exercise) throw new NotFoundException('Упражнение не найдено');
+
+        if (!exercise) {
+            throw new NotFoundException('Упражнение не найдено');
+        }
 
         // Создаём WorkoutExerciseWeek (без SetWeek)
         const workoutExerciseWeek =

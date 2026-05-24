@@ -4,7 +4,7 @@ import { CreateExerciseDto } from './dto/create-exercise.dto';
 
 @Injectable()
 export class ExercisesService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(dto: CreateExerciseDto & { userId: number }) {
         return this.prisma.exercise.create({
@@ -26,7 +26,7 @@ export class ExercisesService {
     async getMyExercises(userId: number) {
         return this.prisma.exercise.findMany({
             where: {
-                userId,
+                OR: [{ isPublic: true }, { userId: userId }],
             },
             orderBy: {
                 createdAt: 'desc',
